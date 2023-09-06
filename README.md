@@ -3,6 +3,10 @@ CSCI 7850 - Deep Learning class at MTSU in teh Fall of 2023.
 
 This repo will serve for the labs being worked on in this class.
 
+## Jupyter Lab
+Using the following coomand works for me:
+`docker run -it --rm -p 8888:8888 --user root -e JUPYTER_ENABLE_LAB=yes -e GRANT_SUDO=yes -v "$(pwd)":/home/jovyan/work jlphillips/csci:2023-Fall`
+
 ## Login to bio-sim
 I used the following command (`ssh rhoehn@login.hpc.svc.cluster.local`) to get acces to biosim. You will need to use your MTSU passord to gain access.
 
