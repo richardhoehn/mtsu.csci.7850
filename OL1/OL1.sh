@@ -1,7 +1,10 @@
 #!/bin/sh
 
 # run Local
-exec ./OL1.py wdbc adam 0
+./OL1.py wdbc adam 0
+./OL1.py wdbc adam 0
+./OL1.py wdbc adam 1
+./OL1.py wdbc adam 1
 
 
 

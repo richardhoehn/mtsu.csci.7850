@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import sys
+import os
+
 import numpy as np
 import torch
 import lightning.pytorch as pl 
@@ -15,6 +17,7 @@ class Config:
         self._data_type = None
         self._optimizer_name = None
         self._use_standardization = None
+        self.max_epochs = 100
 
     def parse_args(self):
         self._data_type = (sys.argv[1] or "").lower() # Make sure it is lower case
@@ -22,7 +25,8 @@ class Config:
         self._use_standardization = (sys.argv[3] == "1") # Conver to bool
         self.device = "gpu" if torch.cuda.is_available() else "cpu" # Setup Device
     
-    def get_data_url(self):
+    @property
+    def data_url(self):
         match self._data_type:
             case "iris":
                 return "https://www.cs.mtsu.edu/~jphillips/courses/CSCI7850/public/iris-data.txt"
@@ -30,6 +34,18 @@ class Config:
                 return "https://www.cs.mtsu.edu/~jphillips/courses/CSCI7850/public/WDBC.txt"
             case _:
                 return ""
+    
+    @property
+    def result_filename(self):
+        _filename = ""
+        _filename += self._data_type
+        _filename += "-"
+        _filename += "standardized" if self._use_standardization else "unstandardized"
+        _filename += "-"
+        _filename += self._optimizer_name
+        _filename += "-results.txt"
+        return _filename
+    
 
 
 
@@ -116,7 +132,7 @@ if __name__ == '__main__':
     cfg = Config()
     cfg.parse_args()
     
-    data = np.loadtxt(cfg.get_data_url()) 
+    data = np.loadtxt(cfg.data_url) 
     print(data[0:5])
     
     X = data[ : ,    : -1]
@@ -169,8 +185,10 @@ if __name__ == '__main__':
         "logs",
         name = "Single-Layer-Network",) 
     
+    print(f"Logger Dir: {logger.log_dir}")
+    
     trainer = pl.Trainer(
-        max_epochs=100,
+        max_epochs=cfg.max_epochs,
         logger=logger,
         enable_progress_bar= True,
         log_every_n_steps=0,
@@ -184,5 +202,21 @@ if __name__ == '__main__':
     print(final_result)
 
 
-    results = pd.read_csv("logs/Single-Layer-Network/version_2/metrics.csv", delimiter=',')
+    results = pd.read_csv(f"{logger.log_dir}/metrics.csv", delimiter=',')
     print(results)
+    print(results.columns)
+    print("Validation accuracy:",*["%.8f"%(x) for x in results['val_acc'][np.logical_not(np.isnan(results["val_acc"]))][0::10]])
+    print(cfg.result_filename)
+
+    # Calculate the expression and store it in a variable
+    result_acc = ["%.8f"%(x) for x in results['val_acc'][np.logical_not(np.isnan(results["val_acc"]))][0::10]]
+    result_acc_string = " ".join(result_acc)
+
+    # Open the file in append mode
+    with open(cfg.result_filename, 'a') as file:
+        # Append the result_string to a new line in the file
+        file.write(result_acc_string + "\n")
+
+    res = np.loadtxt(cfg.result_filename)
+    print(res)
+    print(res.shape)
