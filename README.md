@@ -14,6 +14,7 @@ I used the following command (`ssh rhoehn@login.hpc.svc.cluster.local`) to get a
 I had to add teh shebang for python and shell scripts like this:
 1. Python => `#!/usr/bin/env python3` at the top of the file.
 2. Shell Script => `#!/bin/sh` at the top of the file.
+3. You can also run multiple times the same sheel script like this: `for((x=0;x<100;x++)); do ./OL1.sh; done;`
 
 ## GII Push and Commit
 I use the following commands to push to GIT:
