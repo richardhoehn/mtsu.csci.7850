@@ -1,3 +1,9 @@
+
+
+# Open Labs - Special Folders
+/OL1/logs/*
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
