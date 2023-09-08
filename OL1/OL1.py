@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 
 import sys
-
 import numpy as np
 import torch
 import lightning.pytorch as pl 
-from torchinfo import summary 
-from torchview import draw_graph 
-import matplotlib.pyplot as plt 
 import pandas as pd
 import torchmetrics
 
@@ -169,8 +165,6 @@ if __name__ == '__main__':
     
     data = np.loadtxt(config.data_url) 
 
-    print(data[0:5])
-    
     X = data[ : ,    : -1]
     Y = data[ : , -1 :   ]
 
@@ -186,15 +180,11 @@ if __name__ == '__main__':
     if (config.use_standardization):
         X = np.apply_along_axis(preprocess, 0, X)
 
-    print(X.shape[-1], Y.shape[-1])
-
     # Setting the Out Feature based onteh Classificaiotn Model used (Binary or Multi-Class)
     out_features = config.num_classes if config.is_multi_classification else Y.shape[-1]
 
     neural_net = NeuralNetwork(X.shape[-1], out_features).to(config.device)
-    print(neural_net)
-    print(summary(neural_net, input_size=X.shape))
-    
+   
     predictions = neural_net.predict(torch.Tensor(X[:5])) if config.is_multi_classification else neural_net.predict(torch.Tensor(X[:5,:])) 
     predictions.detach().numpy()
 
