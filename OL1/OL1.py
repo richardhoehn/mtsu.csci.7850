@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import sys
-import os
 
 import numpy as np
 import torch
@@ -14,20 +13,25 @@ import torchmetrics
 
 class Config:
     def __init__(self):
-        self._data_type = None
-        self._optimizer_name = None
-        self._use_standardization = None
+        self.data_type = None
+        self.optimizer_name = None
+        self.use_standardization = None
         self.max_epochs = 100
+        self.num_classes = 0
 
     def parse_args(self):
-        self._data_type = (sys.argv[1] or "").lower() # Make sure it is lower case
-        self._optimizer_name = (sys.argv[2] or "").lower() # Make sure it is lower case
-        self._use_standardization = (sys.argv[3] == "1") # Conver to bool
+        self.data_type = (sys.argv[1] or "").lower() # Make sure it is lower case
+        self.optimizer_name = (sys.argv[2] or "").lower() # Make sure it is lower case
+        self.use_standardization = (sys.argv[3] == "1") # Conver to bool
         self.device = "gpu" if torch.cuda.is_available() else "cpu" # Setup Device
     
     @property
+    def is_multi_classification(self):
+        return (self.num_classes > 2)
+
+    @property
     def data_url(self):
-        match self._data_type:
+        match self.data_type:
             case "iris":
                 return "https://www.cs.mtsu.edu/~jphillips/courses/CSCI7850/public/iris-data.txt"
             case "wdbc":
@@ -38,13 +42,26 @@ class Config:
     @property
     def result_filename(self):
         _filename = ""
-        _filename += self._data_type
+        _filename += self.data_type
         _filename += "-"
-        _filename += "standardized" if self._use_standardization else "unstandardized"
+        _filename += "standardized" if self.use_standardization else "unstandardized"
         _filename += "-"
-        _filename += self._optimizer_name
+        _filename += self.optimizer_name
         _filename += "-results.txt"
         return _filename
+    
+    @property
+    def to_string(self):
+        return f'''
+        *** Config Settings ***
+        Data Type:\t{self.data_type}
+        Optimizer:\t{self.optimizer_name}
+        Class Cnt:\t{self.num_classes}
+        Is Multi-Class:\t{self.is_multi_classification}
+        Epoch Cnt:\t{self.max_epochs}
+        Standarize:\t{self.use_standardization}
+        Filename:\t{self.result_filename}
+        '''
     
 
 
@@ -72,7 +89,7 @@ class NeuralNetwork(torch.nn.Module):
         # Here is where we use the layers to compute something...
         y = x
         y = self.forward(y) # Start with the input
-        y = torch.sigmoid(y) # Apply the activation function (stateless)
+        y = torch.softmax(y, -1) if config.is_multi_classification else torch.sigmoid(y)
         return y # Final calculation returned
 
 
@@ -84,10 +101,15 @@ class PLModel(pl.LightningModule):
         super().__init__(**kwargs) # Call the super class constructor 
         self.module = module
         
-        # This creates an accuracy function
-        self.network_acc = torchmetrics.classification.Accuracy(task='binary') # This creates a loss function
-        self.network_loss = torch.nn.BCEWithLogitsLoss()
-
+        # This creates an Accuracy and loss Functions
+        # based on teh num_class being passed
+        if(config.is_multi_classification):
+            self.network_acc = torchmetrics.classification.Accuracy(task='multiclass', num_classes=config.num_classes)
+            self.network_loss = torch.nn.CrossEntropyLoss()
+        else:
+            self.network_acc = torchmetrics.classification.Accuracy(task='binary')
+            self.network_loss = torch.nn.BCEWithLogitsLoss()
+        
     def forward(self, x):
         return self.module.forward(x)
 
@@ -95,11 +117,20 @@ class PLModel(pl.LightningModule):
         return self.module.predict(x)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.001) 
-        return optimizer
+        match config.optimizer_name:
+            case "adam":
+                return torch.optim.Adam(self.parameters(), lr=0.01) 
+            case "rmsprop":
+                return torch.optim.RMSprop(self.parameters(), lr=0.01)
+            case "sgd":
+                return torch.optim.SGD(self.parameters(), lr=0.01) 
+            case _:
+                return None
 
     def training_step(self, train_batch, batch_idx): 
         x, y_true = train_batch
+        # Handle Cross Entropy to Long vs. BCE is a Float
+        y_true = torch.Tensor(y_true).type(torch.long) if config.is_multi_classification else y_true
         y_pred = self(x)
         acc = self.network_acc(y_pred, y_true)
         loss = self.network_loss(y_pred, y_true) 
@@ -109,6 +140,8 @@ class PLModel(pl.LightningModule):
 
     def validation_step(self, val_batch, batch_idx): 
         x, y_true = val_batch
+        # Handle Cross Entropy to Long vs. BCE is a Float
+        y_true = torch.Tensor(y_true).type(torch.long) if config.is_multi_classification else y_true
         y_pred = self(x)
         acc = self.network_acc(y_pred, y_true)
         loss = self.network_loss(y_pred, y_true) 
@@ -118,6 +151,8 @@ class PLModel(pl.LightningModule):
 
     def testing_step(self, test_batch, batch_idx): 
         x, y_true = test_batch
+        # Handle Cross Entropy to Long vs. BCE is a Float
+        y_true = torch.Tensor(y_true).type(torch.long) if config.is_multi_classification else y_true
         y_pred = self(x)
         acc = self.network_acc(y_pred,y_true)
         loss = self.network_loss(y_pred,y_true) 
@@ -129,24 +164,41 @@ class PLModel(pl.LightningModule):
 
 # Main Section of the Code Application
 if __name__ == '__main__':
-    cfg = Config()
-    cfg.parse_args()
+    config = Config()
+    config.parse_args()
     
-    data = np.loadtxt(cfg.data_url) 
+    data = np.loadtxt(config.data_url) 
+
     print(data[0:5])
     
     X = data[ : ,    : -1]
     Y = data[ : , -1 :   ]
 
-    neural_net = NeuralNetwork(X.shape[-1],
-                               Y.shape[-1]).to(cfg.device)
-    
-    predictions = neural_net.predict(torch.Tensor(X[:5,:])) 
-    predictions = predictions.detach().numpy()
-    print(predictions)
+    # Setup Number of Classes
+    config.num_classes = len(np.unique(Y))
 
-    model = PLModel(neural_net).to(cfg.device)
-    print(model)
+    # Display Config Settings
+    print(config.to_string)
+
+    def preprocess(x):
+        return (x - np.mean(x)) / np.std(x)
+    
+    if (config.use_standardization):
+        X = np.apply_along_axis(preprocess, 0, X)
+
+    print(X.shape[-1], Y.shape[-1])
+
+    # Setting the Out Feature based onteh Classificaiotn Model used (Binary or Multi-Class)
+    out_features = config.num_classes if config.is_multi_classification else Y.shape[-1]
+
+    neural_net = NeuralNetwork(X.shape[-1], out_features).to(config.device)
+    print(neural_net)
+    print(summary(neural_net, input_size=X.shape))
+    
+    predictions = neural_net.predict(torch.Tensor(X[:5])) if config.is_multi_classification else neural_net.predict(torch.Tensor(X[:5,:])) 
+    predictions.detach().numpy()
+
+    model = PLModel(neural_net).to(config.device)
 
     # Define a permutation needed to shuffle both # inputs and targets in the same manner.... 
     shuffle = np.random.permutation(X.shape[0]) 
@@ -156,9 +208,10 @@ if __name__ == '__main__':
     # Keep 70% for training and remaining for validation
     split_point = int(X_shuffled.shape[0] * 0.7) 
     x_train = X_shuffled[:split_point]
-    y_train = Y_shuffled[:split_point]
+    y_train = Y_shuffled[:split_point,0] if config.is_multi_classification else Y_shuffled[:split_point]
+
     x_val = X_shuffled[split_point:]
-    y_val = Y_shuffled[split_point:]
+    y_val = Y_shuffled[split_point:,0] if config.is_multi_classification else Y_shuffled[split_point:]
 
     # The dataloaders handle shuffling, batching, etc...
     xy_train = torch.utils.data.DataLoader(
@@ -181,42 +234,30 @@ if __name__ == '__main__':
         shuffle=False, 
         batch_size=32)
     
-    logger = pl.loggers.CSVLogger(
-        "logs",
-        name = "Single-Layer-Network",) 
-    
-    print(f"Logger Dir: {logger.log_dir}")
+    logger = pl.loggers.CSVLogger("logs", name = "Single-Layer-Network",) 
     
     trainer = pl.Trainer(
-        max_epochs=cfg.max_epochs,
+        max_epochs=config.max_epochs,
         logger=logger,
-        enable_progress_bar= True,
+        enable_progress_bar=True,
         log_every_n_steps=0,
         callbacks=[pl.callbacks.TQDMProgressBar(refresh_rate=50)])
     
     preliminary_result = trainer.validate(model, dataloaders=xy_val)
-    print(preliminary_result)
 
     trainer.fit(model, train_dataloaders=xy_train, val_dataloaders=xy_val)
     final_result = trainer.validate(model, dataloaders=xy_val)
-    print(final_result)
 
-
+    # Get Results from Logger
     results = pd.read_csv(f"{logger.log_dir}/metrics.csv", delimiter=',')
-    print(results)
-    print(results.columns)
-    print("Validation accuracy:",*["%.8f"%(x) for x in results['val_acc'][np.logical_not(np.isnan(results["val_acc"]))][0::10]])
-    print(cfg.result_filename)
 
     # Calculate the expression and store it in a variable
     result_acc = ["%.8f"%(x) for x in results['val_acc'][np.logical_not(np.isnan(results["val_acc"]))][0::10]]
     result_acc_string = " ".join(result_acc)
 
     # Open the file in append mode
-    with open(cfg.result_filename, 'a') as file:
+    with open(config.result_filename, 'a') as file:
         # Append the result_string to a new line in the file
         file.write(result_acc_string + "\n")
 
-    res = np.loadtxt(cfg.result_filename)
-    print(res)
-    print(res.shape)
+    print("Validation accuracy:",*["%.8f"%(x) for x in results['val_acc'][np.logical_not(np.isnan(results["val_acc"]))][0::10]])
