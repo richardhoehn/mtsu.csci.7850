@@ -9,6 +9,7 @@ Using the following coomand works for me:
 
 ## Login to bio-sim
 I used the following command (`ssh rhoehn@login.hpc.svc.cluster.local`) to get acces to biosim. You will need to use your MTSU passord to gain access.
+This works: `for((x=0;x<10;x++)); do srun -c 4 apptainer exec /home/shared/sif/csci-2023-Fall.sif ./OL1.sh; done;`
 
 ## Runnig Python & Scrips
 I had to add teh shebang for python and shell scripts like this:
