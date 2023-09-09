@@ -211,6 +211,7 @@ if __name__ == '__main__':
                 torch.Tensor(y_train).type(torch.float)
             )
         ),
+        num_workers=4,
         shuffle=True, 
         batch_size=32)
     
@@ -221,6 +222,7 @@ if __name__ == '__main__':
                 torch.Tensor(y_val).type(torch.float)
             )
         ),
+        num_workers=4,
         shuffle=False, 
         batch_size=32)
     
