@@ -11,6 +11,32 @@ Using the following coomand works for me:
 I used the following command (`ssh rhoehn@login.hpc.svc.cluster.local`) to get acces to biosim. You will need to use your MTSU passord to gain access.
 This works: `for((x=0;x<10;x++)); do srun -c 4 apptainer exec /home/shared/sif/csci-2023-Fall.sif ./OL1.sh; done;`
 
+## Hamiton
+
+Run this on Hamilton
+`srun -G 1 -p research apptainer run --nv --env NB_UID=${UID} --writable-tmpfs -H jlab:${HOME} --env NOTEBOOK_ARGS="--NotebookApp.base_url=/biosim/user/${USER}/proxy/absolute/9000/ --NotebookApp.custom_display_url=https://jupyterhub.cs.mtsu.edu" /home/shared/sif/csci-2023-Fall.sif`
+
+Then...
+
+`ssh -L 9000:cX:8888 rhoehn@hamilton.cs.mtsu.edu`
+
+
+
+
+## Create And Link SSH Keys - No Password Needed
+1. SSH into device that you want to add the public key to.
+2. Create the folders: `mkdir -p ~/.ssh` and `touch ~/.ssh/authorized_keys`
+3. Run the following: `cat ~/.ssh/id_rsa.pub  | ssh rhoehn@login.hpc.svc.cluster.local bash -c "cat >> .ssh/authorized_keys"`
+4. Should work now.
+
+If the SSH keys get messed up us the following command to clear them. Do this on the local system.
+
+```
+ssh-keygen -f "/home/jovyan/.ssh/known_hosts" -R "login.hpc.svc.cluster.local"
+```
+
+
+
 ## Runnig Python & Scrips
 I had to add teh shebang for python and shell scripts like this:
 1. Python => `#!/usr/bin/env python3` at the top of the file.
