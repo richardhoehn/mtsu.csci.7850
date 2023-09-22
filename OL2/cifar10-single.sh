@@ -1,3 +1,3 @@
 #!/bin/sh
 
-apptainer exec /home/shared/sif/csci-2023-Fall.sif ./cifar10-single.py
+apptainer exec --nv /home/shared/sif/csci-2023-Fall.sif ./cifar10-single.py
