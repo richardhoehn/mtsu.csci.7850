@@ -20,6 +20,8 @@ Run this on Hamilton
 
 Then...
 
+Using the `squeue` fidn the cluster you are on: Expl: `c2`.
+
 `ssh -L 9000:cX:8888 rhoehn@hamilton.cs.mtsu.edu`
 
 `cat slurm* | grep "Validation accuracy:" |  cut -c 22-`
