@@ -22,7 +22,7 @@ Then...
 
 `ssh -L 9000:cX:8888 rhoehn@hamilton.cs.mtsu.edu`
 
-
+`cat slurm* | grep "Validation accuracy:" |  cut -c 22-`
 
 
 ## Create And Link SSH Keys - No Password Needed
