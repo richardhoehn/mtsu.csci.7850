@@ -22,11 +22,12 @@ print(f"Use GPU: {torch.cuda.is_available()}")
 cfg_data_folder = "datasets/cifar10"
 cfg_max_epochs  = 50;
 cfg_num_workers = 2
-cfg_hidden_dims = 42
+cfg_hidden_dims = 35
+cfg_num_hidden_layers = 18
 
 cfg_logger_dir="logs"
 cfg_logger_name="OL2"
-cfg_logger_version="wide"
+cfg_logger_version="deep"
 
 # Load the data set and scale to [-1,+1]
 training_dataset = torchvision.datasets.CIFAR10(root=cfg_data_folder, download=True, train=True)
@@ -47,25 +48,28 @@ x_train = x_train[permutation][:split_point]
 y_train = y_train[permutation][:split_point]
 
 # Define model
-class WideNetwork(torch.nn.Module):
-    def __init__(self, input_size, output_size, hidden_size, **kwargs):
-        super().__init__(**kwargs)
+class DeepNetwork(torch.nn.Module):
+    def __init__(self, input_size, output_size, hidden_size, num_hidden_layers, **kwargs):
+        super().__init__(**kwargs) 
         self.flatten_layer = torch.nn.Flatten()
-        self.hidden_layer = torch.nn.Linear(input_size.numel(),
-                                            hidden_size)
+        
+        # Initial linear projection
+        layers = [torch.nn.Linear(input_size.numel(),
+                                  hidden_size)]
+        for _ in range(num_hidden_layers):
+            layers = layers + [torch.nn.Linear(hidden_size, hidden_size), torch.nn.Tanh()]
+
         self.layer_norm = torch.nn.LayerNorm(hidden_size)
-        self.batch_norm = torch.nn.BatchNorm1d(hidden_size)
-        #self.hidden_activation = torch.nn.Tanh()
         self.hidden_activation = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(0.5)
-        self.output_layer = torch.nn.Linear(hidden_size,
-                                            output_size)
-    
+        self.hidden_layers = torch.nn.Sequential(*layers)
+        self.output_layer = torch.nn.Linear(hidden_size, output_size)
+        
     def forward(self, x):
         y = x
         y = self.flatten_layer(y)
-        y = self.hidden_activation(self.hidden_layer(y))
-        y = self.batch_norm(y) # Applying Batch Norm
+        y = self.hidden_layers(y)
+        y = self.layer_norm(y) # Applying Batch Norm
         y = self.dropout(y)
         y = self.output_layer(y)
         return y
@@ -73,7 +77,7 @@ class WideNetwork(torch.nn.Module):
     def predict(self, x):
         y = x
         y = self.forward(y)
-        y = torch.softmax(y, -1)
+        y = torch.softmax(y,-1)
         return y
     
         
@@ -130,9 +134,13 @@ class PLModel(pl.LightningModule):
         return loss
 
 
-model = PLModel(WideNetwork(x_train.shape[1:],
+# Setup
+model = PLModel(DeepNetwork(x_train.shape[1:],
                             len(y_train.unique()),
-                            cfg_hidden_dim))
+                            cfg_hidden_dims, # Using CFG
+                            cfg_num_hidden_layers)) # Using CFG
+
+summary(model, input_size=(1,)+x_train.shape[1:])
 
 xy_train = torch.utils.data.DataLoader(list(zip(x_train, y_train)),
                                        shuffle=True,
