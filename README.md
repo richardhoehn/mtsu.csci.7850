@@ -22,7 +22,7 @@ Then...
 
 Using the `squeue` fidn the cluster you are on: Expl: `c2`.
 
-`ssh -L 9000:cX:8888 rhoehn@hamilton.cs.mtsu.edu` or `ssh -L 9000:c2:8888 hamilton`
+`ssh -L 9000:cX:8888 rhoehn@hamilton.cs.mtsu.edu`
 
 `cat slurm* | grep "Validation accuracy:" |  cut -c 22-`
 
