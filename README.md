@@ -16,6 +16,8 @@ This works: `for((x=0;x<10;x++)); do srun -c 4 apptainer exec /home/shared/sif/c
 Run this on Hamilton
 `srun -G 1 -p research apptainer run --nv --env NB_UID=${UID} --writable-tmpfs -H jlab:${HOME} --env NOTEBOOK_ARGS="--NotebookApp.base_url=/biosim/user/${USER}/proxy/absolute/9000/ --NotebookApp.custom_display_url=https://jupyterhub.cs.mtsu.edu" /home/shared/sif/csci-2023-Fall.sif`
 
+`srun -G 1 -p research apptainer run --nv --env NB_UID=${UID} --writable-tmpfs -H mtsu.csci.7850:${HOME} --env NOTEBOOK_ARGS="--NotebookApp.base_url=/biosim/user/${USER}/proxy/absolute/9000/ --NotebookApp.custom_display_url=https://jupyterhub.cs.mtsu.edu" /home/shared/sif/csci-2023-Fall.sif`
+
 Then...
 
 `ssh -L 9000:cX:8888 rhoehn@hamilton.cs.mtsu.edu`
