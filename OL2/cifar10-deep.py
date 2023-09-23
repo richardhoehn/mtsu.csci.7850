@@ -8,7 +8,8 @@ import numpy as np
 import torch
 import torchvision
 import torchmetrics
-import lightning.pytorch as pl 
+import lightning.pytorch as pl
+from torchinfo import summary 
 import pandas as pd
 
 if (torch.cuda.is_available()):
@@ -54,14 +55,17 @@ class DeepNetwork(torch.nn.Module):
         self.flatten_layer = torch.nn.Flatten()
         
         # Initial linear projection
-        layers = [torch.nn.Linear(input_size.numel(),
-                                  hidden_size)]
+        layers = [torch.nn.Linear(input_size.numel(), hidden_size),
+                  torch.nn.ReLU(),
+                  torch.nn.BatchNorm1d(hidden_size),
+                  torch.nn.Dropout(0.5)
+                 ]
+        
         for _ in range(num_hidden_layers):
-            layers = layers + [torch.nn.Linear(hidden_size, hidden_size), torch.nn.Tanh()]
-
-        self.layer_norm = torch.nn.LayerNorm(hidden_size)
-        self.hidden_activation = torch.nn.ReLU()
-        self.dropout = torch.nn.Dropout(0.5)
+            layers.append(torch.nn.Linear(hidden_size, hidden_size))
+            layers.append(torch.nn.ReLU())  # Use ReLU activation
+            layers.append(torch.nn.BatchNorm1d(hidden_size))  # Add Layer Normalization
+            
         self.hidden_layers = torch.nn.Sequential(*layers)
         self.output_layer = torch.nn.Linear(hidden_size, output_size)
         
@@ -69,8 +73,6 @@ class DeepNetwork(torch.nn.Module):
         y = x
         y = self.flatten_layer(y)
         y = self.hidden_layers(y)
-        y = self.layer_norm(y) # Applying Batch Norm
-        y = self.dropout(y)
         y = self.output_layer(y)
         return y
         
@@ -102,7 +104,7 @@ class PLModel(pl.LightningModule):
         return self.module.predict(x)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
+        optimizer = torch.optim.Adam(self.parameters(), lr=0.001, weight_decay=1e-4)
         return optimizer
 
     def training_step(self, train_batch, batch_idx): 
@@ -132,6 +134,7 @@ class PLModel(pl.LightningModule):
         self.log('test_acc',  acc,  on_step=False, on_epoch=True)
         self.log('test_loss', loss, on_step=False, on_epoch=True)
         return loss
+
 
 
 # Setup
