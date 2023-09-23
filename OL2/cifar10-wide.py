@@ -9,6 +9,7 @@ import torch
 import torchvision
 import torchmetrics
 import lightning.pytorch as pl 
+from torchinfo import summary 
 import pandas as pd
 
 if (torch.cuda.is_available()):
@@ -55,7 +56,6 @@ class WideNetwork(torch.nn.Module):
                                             hidden_size)
         self.layer_norm = torch.nn.LayerNorm(hidden_size)
         self.batch_norm = torch.nn.BatchNorm1d(hidden_size)
-        #self.hidden_activation = torch.nn.Tanh()
         self.hidden_activation = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(0.5)
         self.output_layer = torch.nn.Linear(hidden_size,
@@ -130,9 +130,12 @@ class PLModel(pl.LightningModule):
         return loss
 
 
+
 model = PLModel(WideNetwork(x_train.shape[1:],
                             len(y_train.unique()),
-                            cfg_hidden_dim))
+                            cfg_hidden_dims))
+
+summary(model, input_size=(1,)+x_train.shape[1:])
 
 xy_train = torch.utils.data.DataLoader(list(zip(x_train, y_train)),
                                        shuffle=True,
