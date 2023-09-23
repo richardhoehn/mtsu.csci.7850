@@ -1,0 +1,111 @@
+Matplotlib created a temporary cache directory at /tmp/matplotlib-ukb6_i6f because the default path (/home/jovyan/.cache/matplotlib) is not a writable directory; it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+/opt/conda/lib/python3.11/site-packages/lightning/fabric/loggers/csv_logs.py:195: UserWarning: Experiment logs directory logs/OL2/deep exists and is not empty. Previous log files in this directory will be deleted when the new ones are saved!
+  rank_zero_warn(
+/opt/conda/lib/python3.11/site-packages/lightning/pytorch/callbacks/model_checkpoint.py:617: UserWarning: Checkpoint directory logs/OL2/deep/checkpoints exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+  | Name       | Type               | Params
+--------------------------------------------------
+0 | module     | DeepNetwork        | 131 K 
+1 | model_acc  | MulticlassAccuracy | 0     
+2 | model_loss | CrossEntropyLoss   | 0     
+--------------------------------------------------
+131 K     Trainable params
+0         Non-trainable params
+131 K     Total params
+0.528     Total estimated model params size (MB)
+/opt/conda/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:442: PossibleUserWarning: The dataloader, val_dataloader, does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` (try 20 which is the number of cpus on this machine) in the `DataLoader` init to improve performance.
+  rank_zero_warn(
+Use GPU: True
+Files already downloaded and verified
+==========================================================================================
+Layer (type:depth-idx)                   Output Shape              Param #
+==========================================================================================
+PLModel                                  [1, 10]                   --
+├─DeepNetwork: 1-1                       --                        --
+│    └─Flatten: 2-1                      [1, 3072]                 --
+│    └─Sequential: 2-2                   [1, 35]                   --
+│    │    └─Linear: 3-1                  [1, 35]                   107,555
+│    │    └─ReLU: 3-2                    [1, 35]                   --
+│    │    └─BatchNorm1d: 3-3             [1, 35]                   70
+│    │    └─Dropout: 3-4                 [1, 35]                   --
+│    │    └─Linear: 3-5                  [1, 35]                   1,260
+│    │    └─ReLU: 3-6                    [1, 35]                   --
+│    │    └─BatchNorm1d: 3-7             [1, 35]                   70
+│    │    └─Linear: 3-8                  [1, 35]                   1,260
+│    │    └─ReLU: 3-9                    [1, 35]                   --
+│    │    └─BatchNorm1d: 3-10            [1, 35]                   70
+│    │    └─Linear: 3-11                 [1, 35]                   1,260
+│    │    └─ReLU: 3-12                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-13            [1, 35]                   70
+│    │    └─Linear: 3-14                 [1, 35]                   1,260
+│    │    └─ReLU: 3-15                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-16            [1, 35]                   70
+│    │    └─Linear: 3-17                 [1, 35]                   1,260
+│    │    └─ReLU: 3-18                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-19            [1, 35]                   70
+│    │    └─Linear: 3-20                 [1, 35]                   1,260
+│    │    └─ReLU: 3-21                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-22            [1, 35]                   70
+│    │    └─Linear: 3-23                 [1, 35]                   1,260
+│    │    └─ReLU: 3-24                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-25            [1, 35]                   70
+│    │    └─Linear: 3-26                 [1, 35]                   1,260
+│    │    └─ReLU: 3-27                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-28            [1, 35]                   70
+│    │    └─Linear: 3-29                 [1, 35]                   1,260
+│    │    └─ReLU: 3-30                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-31            [1, 35]                   70
+│    │    └─Linear: 3-32                 [1, 35]                   1,260
+│    │    └─ReLU: 3-33                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-34            [1, 35]                   70
+│    │    └─Linear: 3-35                 [1, 35]                   1,260
+│    │    └─ReLU: 3-36                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-37            [1, 35]                   70
+│    │    └─Linear: 3-38                 [1, 35]                   1,260
+│    │    └─ReLU: 3-39                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-40            [1, 35]                   70
+│    │    └─Linear: 3-41                 [1, 35]                   1,260
+│    │    └─ReLU: 3-42                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-43            [1, 35]                   70
+│    │    └─Linear: 3-44                 [1, 35]                   1,260
+│    │    └─ReLU: 3-45                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-46            [1, 35]                   70
+│    │    └─Linear: 3-47                 [1, 35]                   1,260
+│    │    └─ReLU: 3-48                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-49            [1, 35]                   70
+│    │    └─Linear: 3-50                 [1, 35]                   1,260
+│    │    └─ReLU: 3-51                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-52            [1, 35]                   70
+│    │    └─Linear: 3-53                 [1, 35]                   1,260
+│    │    └─ReLU: 3-54                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-55            [1, 35]                   70
+│    │    └─Linear: 3-56                 [1, 35]                   1,260
+│    │    └─ReLU: 3-57                   [1, 35]                   --
+│    │    └─BatchNorm1d: 3-58            [1, 35]                   70
+│    └─Linear: 2-3                       [1, 10]                   360
+==========================================================================================
+Total params: 131,925
+Trainable params: 131,925
+Non-trainable params: 0
+Total mult-adds (Units.MEGABYTES): 0.13
+==========================================================================================
+Input size (MB): 0.01
+Forward/backward pass size (MB): 0.01
+Params size (MB): 0.53
+Estimated Total Size (MB): 0.55
+==========================================================================================
+/opt/conda/lib/python3.11/site-packages/lightning/pytorch/trainer/connectors/data_connector.py:442: PossibleUserWarning: The dataloader, train_dataloader, does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` (try 20 which is the number of cpus on this machine) in the `DataLoader` init to improve performance.
+  rank_zero_warn(
+`Trainer.fit` stopped: `max_epochs=50` reached.
+
+Processing Time: 190.724432 seconds
+
+Validation accuracy: 0.15840000 0.19710000 0.22679999 0.24770001 0.27289999 0.27919999 0.29969999 0.31729999 0.31999999 0.33960000 0.34509999 0.35249999 0.36000001 0.37230000 0.37810001 0.37819999 0.38740000 0.39010000 0.39649999 0.40120000 0.40369999 0.40630001 0.40459999 0.41029999 0.41139999 0.41700000 0.41749999 0.41900000 0.42289999 0.42510000 0.42070001 0.42420000 0.42300001 0.42350000 0.42019999 0.43050000 0.43689999 0.43259999 0.43640000 0.43630001 0.43169999 0.43790001 0.43399999 0.43130001 0.44479999 0.43329999 0.44350001 0.43579999 0.44209999 0.44450000
+
+
