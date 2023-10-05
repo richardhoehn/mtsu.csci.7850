@@ -24,7 +24,7 @@ else:
 # Config Section
 cfg_data_folder = "datasets/cifar10"
 cfg_batch_size  = 250
-cfg_max_epochs  = 5
+cfg_max_epochs  = 50
 cfg_num_workers = 2
 
 # Logger Config
