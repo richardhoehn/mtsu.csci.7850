@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+import time
+start = time.time() # Start Timing
+
+
 import numpy as np
 import torch
 import lightning.pytorch as pl
@@ -18,7 +24,7 @@ else:
 # Config Section
 cfg_data_folder = "datasets/cifar10"
 cfg_batch_size  = 250
-cfg_max_epochs  = 10;
+cfg_max_epochs  = 5
 cfg_num_workers = 2
 
 # Logger Config
@@ -141,4 +147,12 @@ trainer.fit(model, xy_train, xy_val)
 
 results = pd.read_csv(logger.log_dir + "/metrics.csv")
 
+# Hanlding Timing
+end = time.time()
+elapsed = end - start
+
+print("")
+print(f"Processing Time: {elapsed:.6f} seconds\n")
 print("Validation accuracy:", *["%.8f"%(x) for x in results['val_acc'][np.logical_not(np.isnan(results["val_acc"]))]])
+print("")
+print("")
