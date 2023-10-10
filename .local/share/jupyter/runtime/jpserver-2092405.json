@@ -1,0 +1,13 @@
+{
+  "base_url": "/biosim/user/rhoehn/proxy/absolute/9000/",
+  "hostname": "0.0.0.0",
+  "password": false,
+  "pid": 2092405,
+  "port": 8888,
+  "root_dir": "/home/rhoehn",
+  "secure": false,
+  "sock": "",
+  "token": "45bedd6fe5b96a7723a600dd0f678841738e0a98fed3cf83",
+  "url": "http://c3.hamilton.cs.mtsu.edu:8888/biosim/user/rhoehn/proxy/absolute/9000/",
+  "version": "2.7.3"
+}
