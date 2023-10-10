@@ -1,0 +1,13 @@
+{
+  "shell_port": 45341,
+  "iopub_port": 48019,
+  "stdin_port": 58511,
+  "control_port": 51259,
+  "hb_port": 34817,
+  "ip": "127.0.0.1",
+  "key": "6ec2d66f-5ca35825797756cac81c49e3",
+  "transport": "tcp",
+  "signature_scheme": "hmac-sha256",
+  "kernel_name": "python3",
+  "jupyter_session": "/home/rhoehn/Lecture-Notebooks/Encoder-Decoder.ipynb"
+}

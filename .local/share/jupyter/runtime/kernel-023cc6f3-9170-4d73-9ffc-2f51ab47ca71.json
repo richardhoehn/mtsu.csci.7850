@@ -1,0 +1,13 @@
+{
+  "shell_port": 46125,
+  "iopub_port": 36389,
+  "stdin_port": 37255,
+  "control_port": 52503,
+  "hb_port": 57633,
+  "ip": "127.0.0.1",
+  "key": "1cb1658c-8a4d39c3292aa7c03f58cd96",
+  "transport": "tcp",
+  "signature_scheme": "hmac-sha256",
+  "kernel_name": "python3",
+  "jupyter_session": "/home/rhoehn/OL3/cifar10-resnet-gelu.ipynb"
+}
