@@ -57,12 +57,21 @@ xy_val = torch.utils.data.DataLoader(list(zip(x_test,
                                      num_workers=cfg_num_workers)
 
 
+# In order to replace the activation function ReLU with GELU
+# we can recursively traverse the model's layers and replace
+# any instance of torch.nn.ReLU with torch.nn.GELU.
+# This is a simple an straight forward way to use a different
+# activation function to do so.
 def replace_relu_with_gelu(model):
     for name, module in model.named_children():
+        # The "instance" for ReLU and simply replace it
         if isinstance(module, torch.nn.ReLU):
             setattr(model, name, torch.nn.GELU())
         else:
+            # Recursively the parent model's children
             replace_relu_with_gelu(module)
+
+
 
 class ResNet50(pl.LightningModule):
     def __init__(self,
