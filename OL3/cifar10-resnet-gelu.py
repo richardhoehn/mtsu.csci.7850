@@ -3,13 +3,16 @@
 import time
 start = time.time() # Start Timing
 
-
 import numpy as np
+
 import torch
 import lightning.pytorch as pl
 import torchmetrics
 import torchvision
 from torchinfo import summary
+
+from typing import List, Optional
+
 import pandas as pd
 
 if torch.cuda.is_available():
@@ -56,24 +59,197 @@ xy_val = torch.utils.data.DataLoader(list(zip(x_test,
                                      batch_size=cfg_batch_size,
                                      num_workers=cfg_num_workers)
 
+#
+# *****************************************
+# ********** Citation References **********
+# *****************************************
+#
+# It should be noted that below code for the following 
+# functions and classes was heaviliy adapted from the 
+# following sources:
+#
+# -> https://pytorch.org/vision/main/_modules/torchvision/models/resnet.html#resnet50
+#    Detailes on how to creare the underlying calls to Resnet
+#
+# -> https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py
+#    This is the source code for Resnet that is implmented in PyTorch. I 
+#    used this for a large part of the below code. Heavy adapatons have taking place
+#    to make my classes and functions a bit more readable for my educational
+#    pruposes!
 
-# In order to replace the activation function ReLU with GELU
-# we can recursively traverse the model's layers and replace
-# any instance of torch.nn.ReLU with torch.nn.GELU.
-# This is a simple an straight forward way to use a different
-# activation function to do so.
-def replace_relu_with_gelu(model):
-    for name, module in model.named_children():
-        # The "instance" for ReLU and simply replace it
-        if isinstance(module, torch.nn.ReLU):
-            setattr(model, name, torch.nn.GELU())
-        else:
-            # Recursively the parent model's children
-            replace_relu_with_gelu(module)
+
+def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1):
+    return torch.nn.Conv2d(
+        in_planes,
+        out_planes,
+        kernel_size=3,
+        stride=stride,
+        padding=dilation,
+        groups=groups,
+        bias=False,
+        dilation=dilation,
+    )
 
 
+def conv1x1(in_planes: int, out_planes: int, stride: int = 1):
+    return torch.nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
 
-class ResNet50(pl.LightningModule):
+class Bottleneck(torch.nn.Module):
+    # Bottleneck in torchvision places the stride for downsampling at 3x3 convolution(self.conv2)
+    # while original implementation places the stride at the first 1x1 convolution(self.conv1)
+    # according to "Deep residual learning for image recognition" https://arxiv.org/abs/1512.03385.
+    # This variant is also known as ResNet V1.5 and improves accuracy according to
+    # https://ngc.nvidia.com/catalog/model-scripts/nvidia:resnet_50_v1_5_for_pytorch.
+
+    # *** NOTES - By Richard Hoehn
+    # This has been reduced to only work for Resnet50!
+
+    expansion: int = 4
+
+    def __init__(
+        self,
+        inplanes: int,
+        planes: int,
+        stride: int = 1,
+        downsample: Optional[torch.nn.Module] = None,
+        groups: int = 1,
+        base_width: int = 64,
+        dilation: int = 1
+    ) -> None:
+        super().__init__()
+        
+
+        width = int(planes * (base_width / 64.0)) * groups
+
+        self.conv1 = conv1x1(inplanes, width)
+        self.bn1 = torch.nn.BatchNorm2d(width)
+        self.conv2 = conv3x3(width, width, stride, groups, dilation)
+        self.bn2 = torch.nn.BatchNorm2d(width)
+        self.conv3 = conv1x1(width, planes * self.expansion)
+        self.bn3 = torch.nn.BatchNorm2d(planes * self.expansion)
+        self.gelu = torch.nn.GELU()
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x):
+        identity = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.gelu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.gelu(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
+
+        out += identity
+        out = self.gelu(out)
+
+        return out
+
+
+class ResNetGelu(torch.nn.Module):
+    def __init__(
+        self,
+        block: Bottleneck,
+        layers: List[int],
+        num_classes: int = 10,
+        groups: int = 1,
+        width_per_group: int = 64,
+        replace_stride_with_dilation: Optional[List[bool]] = None,
+    ) -> None:
+        super().__init__()
+        
+        self.inplanes = 64
+        self.dilation = 1
+        
+        if replace_stride_with_dilation is None:
+            # each element in the tuple indicates if we should replace
+            # the 2x2 stride with a dilated convolution instead
+            replace_stride_with_dilation = [False, False, False]
+
+        self.groups = groups
+        self.base_width = width_per_group
+        self.conv1 = torch.nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
+        self.bn1 = torch.nn.BatchNorm2d(self.inplanes)
+        self.gelu = torch.nn.GELU()
+        self.maxpool = torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        
+        self.layer1 = self._make_layer(block, 64, layers[0])
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
+        
+        self.avgpool = torch.nn.AdaptiveAvgPool2d((1, 1))
+        self.output_layer = torch.nn.Linear(512 * block.expansion, num_classes)
+
+
+    def _make_layer(
+        self,
+        block: Bottleneck,
+        planes: int,
+        blocks: int,
+        stride: int = 1,
+        dilate: bool = False,
+    ) -> torch.nn.Sequential:
+        norm_layer = torch.nn.BatchNorm2d
+        downsample = None
+        previous_dilation = self.dilation
+        if dilate:
+            self.dilation *= stride
+            stride = 1
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = torch.nn.Sequential(
+                conv1x1(self.inplanes, planes * block.expansion, stride),
+                norm_layer(planes * block.expansion),
+            )
+
+        layers = [] # Setup the Layers
+        
+        layers.append(
+            # Setup Blocks for helper functions
+            block(self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation)
+        )
+        self.inplanes = planes * block.expansion
+        for _ in range(1, blocks):
+            layers.append(
+                block(
+                    self.inplanes,
+                    planes,
+                    groups=self.groups,
+                    base_width=self.base_width,
+                    dilation=self.dilation
+                )
+            )
+
+        return torch.nn.Sequential(*layers)
+
+    def forward(self, x):
+        y = x
+        
+        y = self.conv1(y)
+        y = self.bn1(y)
+        y = self.gelu(y)
+        y = self.maxpool(y)
+
+        y = self.layer1(y)
+        y = self.layer2(y)
+        y = self.layer3(y)
+        y = self.layer4(y)
+
+        y = self.avgpool(y)
+        y = torch.flatten(y, 1)
+        y = self.output_layer(y)
+
+        return y
+
+class ResNet50Gelu(pl.LightningModule):
     def __init__(self,
                  input_shape,
                  output_size,
@@ -103,8 +279,7 @@ class ResNet50(pl.LightningModule):
                                                    (4,4), # 8x
                                                    (4,4)) # 8+
 
-        self.resnet = torchvision.models.resnet50(weights=None, num_classes=output_size)
-        replace_relu_with_gelu(self.resnet) # Switch out ReLU with GELU activation functions
+        self.resnet = ResNetGelu(Bottleneck, [3, 4, 6, 3], num_classes=output_size)
         
         self.model_acc = torchmetrics.classification.Accuracy(task='multiclass', num_classes=output_size)
         self.model_loss = torch.nn.CrossEntropyLoss()
@@ -144,9 +319,9 @@ class ResNet50(pl.LightningModule):
         self.log('val_acc',  acc,  on_step=False, on_epoch=True)
         self.log('val_loss', loss, on_step=False, on_epoch=True)
         return loss
+    
 
-
-model = ResNet50(x_train.shape[1:], len(torch.unique(y_train)))
+model = ResNet50Gelu(x_train.shape[1:], len(torch.unique(y_train)))
 
 summary(model, input_size=(1,)+x_train.shape[1:], depth=4)
 
