@@ -1,0 +1,13 @@
+{
+  "shell_port": 32999,
+  "iopub_port": 37035,
+  "stdin_port": 57881,
+  "control_port": 45467,
+  "hb_port": 50575,
+  "ip": "127.0.0.1",
+  "key": "339bfdd7-7316d6083d18d131379834f4",
+  "transport": "tcp",
+  "signature_scheme": "hmac-sha256",
+  "kernel_name": "python3",
+  "jupyter_session": "/home/rhoehn/OL4/translation-lstm.ipynb"
+}
