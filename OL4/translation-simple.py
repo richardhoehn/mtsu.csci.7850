@@ -286,10 +286,11 @@ trainer = pl.Trainer(logger=logger,
                      callbacks=[pl.callbacks.TQDMProgressBar(refresh_rate=50)])
 
 
-
+# Train Model
 trainer.fit(enc_dec_net, xy_train, xy_val) 
 
-results = pd.read_csv(logger.log_dir + "/metrics.csv")
+# Test Model
+results = trainer.test(enc_dec_net, xy_val)
 
 # Hanlding Timing
 end = time.time()
@@ -297,6 +298,6 @@ elapsed = end - start
 
 print("")
 print(f"Processing Time: {elapsed:.6f} seconds\n")
-print("Validation accuracy:", *["%.8f"%(x) for x in results['val_acc'][np.logical_not(np.isnan(results["val_acc"]))]])
+print("Test Accuracy:", results[0]['test_acc'])
 print("")
 print("")
