@@ -288,6 +288,8 @@ trainer = pl.Trainer(logger=logger,
 
 trainer.fit(enc_dec_net, xy_train, xy_val) 
 
+
+
 results = pd.read_csv(logger.log_dir + "/metrics.csv")
 
 # Hanlding Timing
