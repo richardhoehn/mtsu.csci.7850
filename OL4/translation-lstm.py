@@ -33,7 +33,7 @@ cfg_url         = "https://raw.githubusercontent.com/luisroque/deep-learning-art
 # Logger Config
 cfg_logger_dir     = "logs"
 cfg_logger_name    = "OL4"
-cfg_logger_version = "translation-simple"
+cfg_logger_version = "translation-lstm"
 
 # Setup Data Objects
 data = []
@@ -108,20 +108,19 @@ print(dec_x_val.shape)
 print(dec_y_val.shape)
 
 
-class RecurrentResidual(torch.nn.Module):
+class Lstm(torch.nn.Module):
     def __init__(self,
                  latent_size = 64,
                  bidirectional = False,
                  **kwargs):
         super().__init__(**kwargs)
         self.layer_norm = torch.nn.LayerNorm(latent_size)
-        self.rnn_layer = torch.nn.RNN(latent_size,
+        self.lstm_layer = torch.nn.LSTM(latent_size,
                                       latent_size // 2 if bidirectional else latent_size,
                                       bidirectional=bidirectional,
-                                      nonlinearity='tanh',
                                       batch_first=True)
     def forward(self, x):
-        return x + self.rnn_layer(self.layer_norm(x))[0]
+        return x + self.lstm_layer(self.layer_norm(x))[0]
 
 class EncoderNetwork(torch.nn.Module):
     def __init__(self,
@@ -134,15 +133,15 @@ class EncoderNetwork(torch.nn.Module):
                                             latent_size,
                                             padding_idx=0)
         self.dropout = torch.nn.Dropout1d(0.1) # Whole token dropped
-        self.rnn_layers = torch.nn.Sequential(*[
-            RecurrentResidual(latent_size, True) for _ in range(n_layers)
+        self.lstm_layers = torch.nn.Sequential(*[
+            Lstm(latent_size, True) for _ in range(n_layers)
         ])
         
     def forward(self, x):
         y = x
         y = self.embedding(y)
         y = self.dropout(y)
-        y = self.rnn_layers(y)[:,-1]
+        y = self.lstm_layers(y)[:,-1]
         return y
 
 enc_net = EncoderNetwork(num_tokens=len(i_to_c_eng))
@@ -162,8 +161,8 @@ class DecoderNetwork(torch.nn.Module):
                                             padding_idx=0)
         self.dropout = torch.nn.Dropout1d(0.1) # Whole token dropped
         self.linear = torch.nn.Linear(latent_size*2, latent_size)
-        self.rnn_layers = torch.nn.Sequential(*[
-            RecurrentResidual(latent_size,False) for _ in range(n_layers)
+        self.lstm_layers = torch.nn.Sequential(*[
+            Lstm(latent_size,False) for _ in range(n_layers)
         ])
         self.output_layer = torch.nn.Linear(latent_size,
                                             num_tokens)
@@ -175,7 +174,7 @@ class DecoderNetwork(torch.nn.Module):
         y = y_enc
         y = torch.concatenate([y_enc,y_dec],-1)
         y = self.linear(y)
-        y = self.rnn_layers(y)
+        y = self.lstm_layers(y)
         y = self.output_layer(y)
         return y
 

@@ -2,12 +2,12 @@
   "base_url": "/biosim/user/rhoehn/proxy/absolute/9000/",
   "hostname": "0.0.0.0",
   "password": false,
-  "pid": 3910191,
+  "pid": 50024,
   "port": 8888,
   "root_dir": "/home/rhoehn",
   "secure": false,
   "sock": "",
-  "token": "7e0f68c35b39c5471e3609d2f854d92588f9f5d7c731fcda",
+  "token": "0a48e30dab0da7e1b874bc27038c5cadbfbe6d50f7268275",
   "url": "http://c2.hamilton.cs.mtsu.edu:8888/biosim/user/rhoehn/proxy/absolute/9000/",
   "version": "2.7.3"
 }
