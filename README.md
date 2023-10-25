@@ -1,5 +1,5 @@
 # CSCI 7850 - Deep Learning
-CSCI 7850 - Deep Learning class at MTSU in teh Fall of 2023.
+CSCI 7850 - Deep Learning class at MTSU in the Fall of 2023.
 
 This repo will serve for the labs being worked on in this class.
 
@@ -24,8 +24,16 @@ Using the `squeue` fidn the cluster you are on: Expl: `c2`.
 
 `ssh -L 9000:cX:8888 rhoehn@hamilton.cs.mtsu.edu`
 
+When Using **Validation Accruacy:**:
+
 `cat slurm* | grep "Validation accuracy:" |  cut -c 22-`
 
+When using **Test Accuracy:**:
+
+`cat slurm* | grep "Validation accuracy:" |  cut -c 16-`
+
+
+A Cool way to bine files is to use the `paste` bash command. Lik this `paste file1.txt file2.txt >> results.txt`
 
 ## Create And Link SSH Keys - No Password Needed
 1. SSH into device that you want to add the public key to.
