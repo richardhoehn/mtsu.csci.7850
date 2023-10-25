@@ -50,7 +50,7 @@ ssh-keygen -f "/home/jovyan/.ssh/known_hosts" -R "login.hpc.svc.cluster.local"
 
 
 ## Runnig Python & Scrips
-I had to add teh shebang for python and shell scripts like this:
+I had to add the shebang for python and shell scripts like this:
 1. Python => `#!/usr/bin/env python3` at the top of the file.
 2. Shell Script => `#!/bin/sh` at the top of the file.
 3. You can also run multiple times the same sheel script like this: `for((x=0;x<100;x++)); do ./OL1.sh; done;`
