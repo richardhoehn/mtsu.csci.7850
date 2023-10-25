@@ -30,7 +30,7 @@ When Using **Validation Accruacy:**:
 
 When using **Test Accuracy:**:
 
-`cat slurm* | grep "Validation accuracy:" |  cut -c 16-`
+`cat slurm* | grep "Test Accuracy:" |  cut -c 16-`
 
 
 A Cool way to bine files is to use the `paste` bash command. Lik this `paste file1.txt file2.txt >> results.txt`
