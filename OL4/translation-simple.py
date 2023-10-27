@@ -45,7 +45,7 @@ data = np.array(data)
 
 # Subset? - All of the data will take some time...
 n_seq = data.shape[0]
-n_seq = 100
+n_seq = 10000
 data = data[0:n_seq]
 split_point = int(data.shape[0] * 0.8) # Keep 80/20 split
 np.random.shuffle(data) # In-place modification
