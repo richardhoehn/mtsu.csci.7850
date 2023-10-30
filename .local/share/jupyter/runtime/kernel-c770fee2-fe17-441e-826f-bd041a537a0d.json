@@ -1,0 +1,13 @@
+{
+  "shell_port": 45479,
+  "iopub_port": 58071,
+  "stdin_port": 60141,
+  "control_port": 37171,
+  "hb_port": 36915,
+  "ip": "127.0.0.1",
+  "key": "5c467868-6b8448b44716a54b3b5a7c4e",
+  "transport": "tcp",
+  "signature_scheme": "hmac-sha256",
+  "kernel_name": "python3",
+  "jupyter_session": "/home/rhoehn/OL5/translation-transformer.ipynb"
+}
