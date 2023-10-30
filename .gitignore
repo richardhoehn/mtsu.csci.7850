@@ -2,6 +2,17 @@
 
 # Open Labs - Special Folders
 /OL1/logs/*
+/OL2/logs/*
+/OL3/logs/*
+/OL4/logs/*
+/OL5/logs/*
+/OL6/logs/*
+
+# OS X stuff
+*.DS_Store
+
+# VSCode
+.vscode
 
 
 # Byte-compiled / optimized / DLL files
