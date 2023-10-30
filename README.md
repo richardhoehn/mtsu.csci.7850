@@ -7,11 +7,11 @@ This repo will serve for the labs being worked on in this class.
 Using the following coomand works for me:
 `docker run -it --rm -p 8888:8888 --user root -e JUPYTER_ENABLE_LAB=yes -e GRANT_SUDO=yes -v "$(pwd)":/home/jovyan/work jlphillips/csci:2023-Fall`
 
-## Login to bio-sim
+## Login to biosim
 I used the following command (`ssh rhoehn@login.hpc.svc.cluster.local`) to get acces to biosim. You will need to use your MTSU passord to gain access.
 This works: `for((x=0;x<10;x++)); do srun -c 4 apptainer exec /home/shared/sif/csci-2023-Fall.sif ./OL1.sh; done;`
 
-## Hamiton
+## Hamilton (Cluster)
 
 Run this on Hamilton
 `srun -G 1 -p research apptainer run --nv --env NB_UID=${UID} --env NB_USER=${USER} --writable-tmpfs -H jlab:${HOME} --env NOTEBOOK_ARGS="--NotebookApp.base_url=/biosim/user/${USER}/proxy/absolute/9000/ --NotebookApp.custom_display_url=https://jupyterhub.cs.mtsu.edu" /home/shared/sif/csci-2023-Fall.sif`
@@ -46,8 +46,6 @@ If the SSH keys get messed up us the following command to clear them. Do this on
 ```
 ssh-keygen -f "/home/jovyan/.ssh/known_hosts" -R "login.hpc.svc.cluster.local"
 ```
-
-
 
 ## Runnig Python & Scrips
 I had to add the shebang for python and shell scripts like this:
