@@ -1,0 +1,13 @@
+{
+  "shell_port": 37659,
+  "iopub_port": 46569,
+  "stdin_port": 37177,
+  "control_port": 38857,
+  "hb_port": 33421,
+  "ip": "127.0.0.1",
+  "key": "dbc674cb-2f83628f753db6e992764220",
+  "transport": "tcp",
+  "signature_scheme": "hmac-sha256",
+  "kernel_name": "python3",
+  "jupyter_session": "/home/rhoehn/OL5/parity-transformer.ipynb"
+}

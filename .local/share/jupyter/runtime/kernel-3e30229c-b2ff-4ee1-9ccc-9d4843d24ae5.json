@@ -1,0 +1,13 @@
+{
+  "shell_port": 49985,
+  "iopub_port": 38275,
+  "stdin_port": 46053,
+  "control_port": 56175,
+  "hb_port": 54325,
+  "ip": "127.0.0.1",
+  "key": "4ef00272-20908fb89df5272f2b9d81d0",
+  "transport": "tcp",
+  "signature_scheme": "hmac-sha256",
+  "kernel_name": "python3",
+  "jupyter_session": "/home/rhoehn/OL4/parity-simple.ipynb"
+}
