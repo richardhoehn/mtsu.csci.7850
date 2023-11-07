@@ -13,9 +13,10 @@ from torchinfo import summary
 import pandas as pd
 
 # Config Section
-cfg_batch_size  = 20
-cfg_max_epochs  = 200
-cfg_num_workers = 2
+cfg_embedding_len = 20
+cfg_batch_size    = 20
+cfg_max_epochs    = 200
+cfg_num_workers   = 2
 
 # Array Building Config
 cfg_array_count      = 1000
@@ -153,14 +154,16 @@ class EncoderNetwork(torch.nn.Module):
                  latent_size = 64,
                  num_heads = 4,
                  n_layers = 8,
+                 embedding_len = 20,
                  **kwargs):
         super().__init__(**kwargs)
         self.token_embedding = torch.nn.Embedding(num_tokens,
-                                                  latent_size,
+                                                  embedding_len,
                                                   padding_idx=0)
         self.position_embedding = torch.nn.Embedding(max_length+1,
-                                                     latent_size,
+                                                     embedding_len,
                                                      padding_idx=0)
+        self.projection = torch.nn.Linear(embedding_len, latent_size)
         self.transformer_blocks = torch.nn.Sequential(*[
             TransformerBlock(latent_size=latent_size,
                              num_heads=num_heads) for _ in range(n_layers)
@@ -170,6 +173,7 @@ class EncoderNetwork(torch.nn.Module):
         y = x
         y = self.token_embedding(y) + \
             self.position_embedding(torch.arange(1,y.shape[1]+1).long().to(device) * torch.sign(y).long().to(device))
+        y = self.projection(y)
         y = self.transformer_blocks(y)
         return y
 
@@ -228,14 +232,16 @@ class DecoderNetwork(torch.nn.Module):
                  latent_size = 64, 
                  num_heads = 4, 
                  n_layers = 8,
+                 embedding_len = 20,
                  **kwargs):
         super().__init__(**kwargs)
         self.token_embedding = torch.nn.Embedding(num_tokens,
-                                                  latent_size,
+                                                  embedding_len,
                                                   padding_idx=0) 
         self.position_embedding = torch.nn.Embedding(max_length+1,
-                                                     latent_size,
+                                                     embedding_len,
                                                      padding_idx=0) 
+        self.projection = torch.nn.Linear(embedding_len, latent_size)
         self.transformer_blocks = torch.nn.Sequential(*[
             MaskedTransformerBlock(latent_size=latent_size,
                                    num_heads=num_heads) for _ in range(n_layers)
@@ -247,6 +253,7 @@ class DecoderNetwork(torch.nn.Module):
         y = x_dec
         y = self.token_embedding(y) + \
         self.position_embedding(torch.arange(1,y.shape[1]+1).long().to(device) * torch.sign(y).long().to(device))
+        y = self.projection(y)
         y = self.transformer_blocks((x_enc,y))[1]
         y = self.output_layer(y)
         return y
@@ -321,11 +328,12 @@ class EncDecNetwork(EncDecLightningModule):
                  latent_size = 64,
                  num_heads = 4, 
                  n_layers = 8,
+                 embedding_len = 20,
                  **kwargs):
         super().__init__(output_size=num_dec_tokens, 
                          **kwargs)
-        self.enc_net = EncoderNetwork(num_enc_tokens, max_enc_length, latent_size, num_heads, n_layers) 
-        self.dec_net = DecoderNetwork(num_dec_tokens, max_dec_length, latent_size, num_heads, n_layers)
+        self.enc_net = EncoderNetwork(num_enc_tokens, max_enc_length, latent_size, num_heads, n_layers, embedding_len) 
+        self.dec_net = DecoderNetwork(num_dec_tokens, max_dec_length, latent_size, num_heads, n_layers, embedding_len)
 
     def forward(self, x_enc, x_dec):
         return self.dec_net(self.enc_net(x_enc), x_dec)
@@ -336,7 +344,8 @@ enc_dec_net = EncDecNetwork(num_enc_tokens=token_count,
                             num_dec_tokens=token_count, 
                             max_dec_length=dec_x_train.shape[-1], 
                             latent_size=64,
-                            n_layers=4)
+                            n_layers=4,
+                            embedding_len = 20)
 
 summary(enc_dec_net, input_size=[enc_x_train[0:1].shape, 
                                  dec_x_train[0:1].shape], 
