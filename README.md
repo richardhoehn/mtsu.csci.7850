@@ -18,6 +18,8 @@ Run this on Hamilton
 
 `srun --time 300 -G 1 -p research apptainer run --nv --env NB_UID=${UID} --env NB_USER=${USER} --writable-tmpfs -H mtsu.csci.7850:${HOME} --env NOTEBOOK_ARGS="--NotebookApp.base_url=/biosim/user/${USER}/proxy/absolute/9000/ --NotebookApp.custom_display_url=https://jupyterhub.cs.mtsu.edu" /home/shared/sif/csci-2023-Fall.sif`
 
+`srun --time 300 -G 1 -p research apptainer run --nv --env NB_UID=${UID} --env NB_USER=${USER} --writable-tmpfs -H mtsu.csci.7850.project:${HOME} --env NOTEBOOK_ARGS="--NotebookApp.base_url=/biosim/user/${USER}/proxy/absolute/9000/ --NotebookApp.custom_display_url=https://jupyterhub.cs.mtsu.edu" /home/shared/sif/csci-2023-Fall.sif`
+
 Then...
 
 Using the `squeue` fidn the cluster you are on: Expl: `c2`.
